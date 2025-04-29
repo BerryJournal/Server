@@ -17,8 +17,22 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
+        'id',
         'name',
+        'surname',
+        'patronymic',
+        'phone',
+        'address',
+        'birthday',
+        'role_id',
+        'group_id',
+        'organization_id',
+        'isRegister',
+        'isArchive',
         'email',
         'password',
     ];
@@ -42,4 +56,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class, 'organization_id');
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
+    }
 }
