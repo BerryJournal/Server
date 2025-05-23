@@ -46,14 +46,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:1,2'])->group(function
     Route::get('/getUserById/{id}', [AdminController::class,'getUserById']);
     Route::get('/getAllRoles', [AdminController::class,'getAllRoles']);
     Route::get('/getAllGroupsName', [AdminController::class,'getAllGroupsName']);
-    Route::get('/sendConfirmation', [AdminController::class,'sendConfirmation']);
+    Route::get('/sendConfirmation/{id}', [AdminController::class,'sendConfirmation']);
     Route::post('/addUser', [AdminController::class,'addUser']);
     Route::put('/updateUser', [AdminController::class,'updateUser']);
     Route::delete('/deleteUser/{id}', [AdminController::class,'deleteUser']);
 
     // Группы
     Route::get('/getAllGroups', [AdminController::class,'getAllGroups']);
-    Route::get('/getGroupById', [AdminController::class,'getGroupById']);
+    Route::get('/getGroupById/{id}', [AdminController::class,'getGroupById']);
     Route::get('/getAllTeachers', [AdminController::class,'getAllTeachers']);
     Route::get('/getAllStudents', [AdminController::class,'getAllStudents']);
     Route::get('/getAllGroupStudents', [AdminController::class,'getAllGroupStudents']);
@@ -63,7 +63,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:1,2'])->group(function
 
     // Специальности
     Route::get('/getAllSpecialities', [AdminController::class,'getAllSpecialities']);
-
+    Route::get('/getSpecialityById/{id}', [AdminController::class,'getSpecialityById']);
     Route::post('/addSpeciality', [AdminController::class,'addSpeciality']);
     Route::put('/updateSpeciality', [AdminController::class,'updateSpeciality']);
     Route::delete('/deleteSpeciality/{id}', [AdminController::class,'deleteSpeciality']);

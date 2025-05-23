@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
             "email"=> "123@123.ru",
             "password"=> bcrypt("123"),
             "role_id"=> "1",
-            'is_register' => 1,
+            'isRegister' => 1,
             'organization_id' => fake()->uuid()
         ]);
     }

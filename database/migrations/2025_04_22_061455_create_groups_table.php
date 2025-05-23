@@ -15,10 +15,10 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->integer('course');
-            $table->integer('max_course');
+            $table->integer('max_course')->nullable();
             $table->date('admission_date');
-            $table->uuid('classroomTeacher_id');
-            $table->uuid('speciality_id');
+            $table->uuid('classroomTeacher_id')->nullable();
+            $table->uuid('speciality_id')->nullable();
             $table->uuid('organization_id');
             $table->boolean('isArchive')->default(false);
             $table->timestamps();

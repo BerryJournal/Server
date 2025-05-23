@@ -2,20 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ConfirmRegister;
 use App\Models\Group;
 use App\Models\Invitation;
 use App\Models\Role;
 use App\Models\Speciality;
 use App\Models\Subject;
 use App\Models\User;
+use Date;
+use Hash;
 use Illuminate\Http\Request;
+use Mail;
 use Str;
 
 class AdminController extends Controller
 {
     // Пользователи
     function getAllUsers(Request $request) {
-        $users = User::with('role', 'group');
+        $users = User::with('role', 'group')->where('organization_id', $request->user()->organization_id);
         if ($request->has('search')) {
             $users->where('name','LIKE','%'. $request->search .'%');
         }
@@ -43,7 +47,15 @@ class AdminController extends Controller
     }
 
     function sendConfirmation(Request $request, $id) {
-        // Отправка почты
+        $user = User::findOrFail($id);
+        $invitation = Invitation::where('user_id', $user->id)->first();
+        // Mail::to($user->email)->send(new ConfirmRegister($invitation, $user->name));
+        $user->update(['password' => Hash::make('123'), 'isRegister' => 1]);
+        if ($invitation) {
+            $invitation->delete();
+        }
+        return response()->json(['message'=> 'Успешно отправлено!']);
+
     }
 
     function addUser(Request $request) {
@@ -57,8 +69,13 @@ class AdminController extends Controller
         if (User::where('email', $request->email)->first()) {
             return response()->json(['error' => 'Пользователь с таким email есть!'], 400);
         }
-        $user = User::create(['id' => Str::uuid(), 'organization_id' => $request->user()->organization_id, ...$request->all()]);
-        Invitation::create(["id" => Str::uuid(), "user_id"=> $user->id]);
+        $userRequest = $request->all();
+        if ($userRequest['role_id'] != 4) {
+            $userRequest['group_id'] = null;
+        }
+        $user = User::create(['organization_id' => $request->user()->organization_id, ...$userRequest]);
+        $invitation = Invitation::create(["user_id"=> $user->id]);
+        // Mail::to($user->email)->send(new ConfirmRegister($invitation, $user->name));
         return response()->json(['message' => 'Успешно добавлено!']);
     }
 
@@ -78,22 +95,22 @@ class AdminController extends Controller
     // Группы
 
     function getAllGroups(Request $request) {
-        $group = Group::with('classroomTeacher');
+        $group = Group::with('classroomTeacher')->where('organization_id', $request->user()->organization_id);
         if ($request->has('search')) {
-            $group->where('shortName','LIKE','%'. $request->search .'%');
+            $group->where('name','LIKE','%'. $request->search .'%');
         }
-        return $group->get();
+        return response()->json(['message' => $group->get()]);
     }
     function getGroupById(Request $request) {
         return Group::with('classroomTeacher', 'students')->where('id', $request->id)->first();
     }
 
     function getAllTeachers(Request $request) {
-        return User::where('role', 3)->get();
+        return response()->json(['message' => User::where('role_id', 3)->where('organization_id', $request->user()->organization_id)->get()]);
     }
 
     function getAllStudents(Request $request) {
-        return User::where('role',4)->where('group', null)->get();
+        return User::where('role_id',4)->where('group', null)->get();
     }
 
     // function getAllGroupStudents(Request $request) {
@@ -101,7 +118,9 @@ class AdminController extends Controller
     // }
 
     function addGroup(Request $request) {
+        Group::create(['organization_id' => $request->user()->organization_id, ...$request->all(), 'admission_date' => date('Y-m-d')]);
 
+        return response()->json(['message' => 'Успешно добавлено!']);
     }
 
 
@@ -117,15 +136,19 @@ class AdminController extends Controller
     // Специальности
 
     function getAllSpecialities(Request $request) {
-        $speciality = Speciality::all();
+        $speciality = Speciality::where('organization_id', $request->user()->organization_id);
         if ($request->has('search')) {
             $speciality->where('name','LIKE','%'. $request->search .'%');
         }
-        return $speciality;
+        return response()->json(['message' =>$speciality->get()]);
+    }
+
+    function getSpecialityById(Request $request, $id) {
+        return response()->json(['message' =>Speciality::where('id', $id)->first()]);
     }
 
     function addSpeciality(Request $request) {
-        Speciality::insert($request->all());
+        Speciality::create(['id' => Str::uuid(), 'name' => $request->name, 'organization_id' => $request->user()->organization_id]);
         return response()->json(['message' => 'Успешно']);
     }
 

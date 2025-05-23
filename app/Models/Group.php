@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Group extends Model
 {
@@ -16,12 +17,19 @@ class Group extends Model
         'name',
         'course',
         'max_course',
-        'admissionDate',
-        'classroomteacher_id',
+        'admission_date',
+        'classroomTeacher_id',
         'speciality_id',
         'organization_id',
         'isArchive',
     ];
+
+        protected static function boot() {
+        parent::boot();
+        static::creating(function ($model) {
+            $model->id = Str::uuid();
+        });
+    }
 
     public function students()
     {
