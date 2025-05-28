@@ -18,7 +18,7 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!in_array($request->user()->role_id, $roles)) {
-            return response()->json(['message' => 'Access denied'], 403);
+            return response()->json(['message' => 'Доступ запрещен!'], 403);
         }
         return $next($request);
     }

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('group_subject_id');
             $table->date('date');
-            $table->date('theme');
+            $table->string('theme')->nullable();
             $table->timestamps();
         });
     }

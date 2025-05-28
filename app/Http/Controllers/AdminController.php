@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\ConfirmRegister;
 use App\Models\Group;
+use App\Models\Group_Subject;
 use App\Models\Invitation;
 use App\Models\Role;
 use App\Models\Speciality;
@@ -19,7 +20,7 @@ class AdminController extends Controller
 {
     // Пользователи
     function getAllUsers(Request $request) {
-        $users = User::with('role', 'group')->where('organization_id', $request->user()->organization_id);
+        $users = User::with('role', 'group')->where('organization_id', $request->user()->organization_id)->where('isArchive', false);
         if ($request->has('search')) {
             $users->where('name','LIKE','%'. $request->search .'%');
         }
@@ -43,7 +44,7 @@ class AdminController extends Controller
     }
 
     function getAllGroupsName() {
-        return response()->json(['message' => Group::all('id','name')]);
+        return response()->json(['message' => Group::where('isArchive', false)->where('classroomTeacher_id', null)->get(['id','name'])]);
     }
 
     function sendConfirmation(Request $request, $id) {
@@ -87,7 +88,7 @@ class AdminController extends Controller
 
 
     function deleteUser(Request $request, $id) {
-        User::find($id)->delete();
+        User::find($id)->update(['isArchive' => true]);
         Invitation::where('user_id', $id)->delete();
         return response()->json(['message' => 'Успешно удалено!']);
     }
@@ -95,14 +96,14 @@ class AdminController extends Controller
     // Группы
 
     function getAllGroups(Request $request) {
-        $group = Group::with('classroomTeacher')->where('organization_id', $request->user()->organization_id);
+        $group = Group::with('classroomTeacher', 'students', 'speciality')->where('organization_id', $request->user()->organization_id)->where('isArchive', false);
         if ($request->has('search')) {
             $group->where('name','LIKE','%'. $request->search .'%');
         }
         return response()->json(['message' => $group->get()]);
     }
     function getGroupById(Request $request) {
-        return Group::with('classroomTeacher', 'students')->where('id', $request->id)->first();
+        return response()->json(['message' =>Group::with('classroomTeacher', 'students', 'speciality')->where('id', $request->id)->first()]);
     }
 
     function getAllTeachers(Request $request) {
@@ -113,10 +114,6 @@ class AdminController extends Controller
         return User::where('role_id',4)->where('group', null)->get();
     }
 
-    // function getAllGroupStudents(Request $request) {
-    //     return User::where('role',4)->where('group_id', $request->id)->get();
-    // }
-
     function addGroup(Request $request) {
         Group::create(['organization_id' => $request->user()->organization_id, ...$request->all(), 'admission_date' => date('Y-m-d')]);
 
@@ -125,12 +122,15 @@ class AdminController extends Controller
 
 
     function updateGroup(Request $request) {
-
+        Group::find($request->id)->update($request->all());
+        return response()->json(['message' => 'Успешно обновлено!']);
     }
 
 
     function deleteGroup(Request $request, $id) {
-
+        Group::findOrFail($id)->update(['isArchive' => true]);
+        // User::where('group_id', $id)->update('group_id', null);
+        return response()->json(['message'=> 'Успешно удалено!']);
     }
 
     // Специальности
@@ -148,13 +148,13 @@ class AdminController extends Controller
     }
 
     function addSpeciality(Request $request) {
-        Speciality::create(['id' => Str::uuid(), 'name' => $request->name, 'organization_id' => $request->user()->organization_id]);
+        Speciality::create(['name' => $request->name, 'organization_id' => $request->user()->organization_id]);
         return response()->json(['message' => 'Успешно']);
     }
 
 
     function updateSpeciality(Request $request) {
-        Speciality::where('id', $request->id)->update($request->all());
+        Speciality::find( $request->id)->update($request->all());
         return response()->json(['message' => 'Успешно']);
     }
 
@@ -167,16 +167,69 @@ class AdminController extends Controller
     // Предметы
 
     function getAllSubjects(Request $request) {
-        $subject = Subject::all();
+        $subjects = Subject::where('organization_id', $request->user()->organization_id)->where('isArchive', false);
         if ($request->has('search')) {
-            $subject->where('name','LIKE','%'. $request->search .'%');
+            $subjects->where('name','LIKE','%'. $request->search .'%');
         }
-        if ($request->has('teacher_id')) {
-            $subject->where('teacher_id','LIKE','%'. $request->search .'%');
-        }
-        return $subject;
+        return response()->json(['message' =>$subjects->get()]);
+    }
+
+    function getSubjectById(Request $request, $id) {
+        return response()->json(['message' =>Subject::where('id', $id)->first()]);
+    }
+
+    function addSubject(Request $request) {
+        Subject::create(['name' => $request->name, 'organization_id' => $request->user()->organization_id]);
+        return response()->json(['message' => 'Успешно']);
+    }
+
+
+    function updateSubject(Request $request) {
+        Subject::find( $request->id)->update($request->all());
+        return response()->json(['message' => 'Успешно']);
+    }
+
+
+    function deleteSubject(Request $request, $id) {
+        Subject::find($id)->update(['isArchive' => true]);
+        return response()->json(['message' => 'Успешно']);
     }
 
     // Пердметы у групп
 
+     function getAllSubjectsForGroups(Request $request) {
+        $subjects = Group_Subject::with('group', 'subject', 'teacher')->where('organization_id', $request->user()->organization_id)->where('isArchive', false);
+        if ($request->has('search')) {
+            $subjects->where('subject_id','LIKE','%'. Subject::where('name', $request->search)->first()->id .'%');
+        }
+        return response()->json(['message' =>$subjects->get()]);
+    }
+
+    function getSubjectForGroupById(Request $request, $id) {
+        return response()->json(['message' =>Group_Subject::where('id', $id)->first()]);
+    }
+
+    function getAllDataForSubjects(Request $request) {
+        return response()->json(['message' =>['subjects' => Subject::where('organization_id', $request->user()->organization_id)->get(), 'teachers' => User::where('organization_id', $request->user()->organization_id)->where('role_id', 3)->get(), 'groups' => Group::where('organization_id', $request->user()->organization_id)->get()]]);
+    }
+
+    function addSubjectForGroup(Request $request) {
+        if (Group_Subject::where('group_id', $request->group_id)->where('subject_id', $request->subject_id)->where('isArchive', false)->get()->count() != 0) {
+            return response()->json(['error'=> 'У группы уже есть данный предмет'], 400);
+        }
+        Group_Subject::create([...$request->all(), 'course' => Group::find($request->group_id)->course, 'organization_id' => $request->user()->organization_id]);
+        return response()->json(['message' => 'Успешно']);
+    }
+
+
+    function updateSubjectForGroup(Request $request) {
+        Group_Subject::find( $request->id)->update($request->all());
+        return response()->json(['message' => 'Успешно']);
+    }
+
+
+    function deleteSubjectForGroup(Request $request, $id) {
+        Group_Subject::find($id)->update(['isArchive' => true]);
+        return response()->json(['message' => 'Успешно']);
+    }
 }

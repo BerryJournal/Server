@@ -33,12 +33,22 @@ class Group extends Model
 
     public function students()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class)->where('isArchive', false);
+    }
+
+    public function subjects()
+    {
+        return $this->hasMany(Group_Subject::class, 'group_id', 'id')->with('subject');
     }
 
     public function classroomTeacher()
     {
         return $this->belongsTo(User::class, 'classroomTeacher_id');
+    }
+
+    public function speciality()
+    {
+        return $this->belongsTo(Speciality::class);
     }
 
 }

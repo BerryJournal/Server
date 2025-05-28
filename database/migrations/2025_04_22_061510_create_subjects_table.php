@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->uuid('organization_id');
+            $table->boolean('isArchive')->default(false);
             $table->timestamps();
         });
     }

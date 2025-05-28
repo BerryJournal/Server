@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('group__subjects', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('subject_id');
+            $table->uuid('group_id');
             $table->uuid('teacher_id');
             $table->uuid('organization_id');
             $table->integer('course');

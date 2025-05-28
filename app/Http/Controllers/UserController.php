@@ -23,7 +23,7 @@ class UserController extends Controller
             return response()->json(['error' => 'Неправильный логин или пароль'], 401);
         }
 
-        $token = $user->createToken('token-name')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json(['token' => $token]);
     }

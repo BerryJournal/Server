@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -30,13 +31,27 @@ Route::prefix('student')->middleware(['auth:sanctum', 'role:4'])->group(function
     // Главная
     Route::get('/getAllSubjects', [StudentController::class,'getAllSubjects']);
     // Успеваемость
-    Route::get('/getDatesForSubjects', [StudentController::class,'getDatesForSubjects']);
+    Route::get('/getSubject/{id}', [StudentController::class,'getSubject']);
     // Зачетная книжка
     Route::get('/getSubjectsWithFinalMark', [StudentController::class,'getSubjectsWithFinalMark']);
 });
 
 
 // Преподаватель
+Route::prefix('teacher')->middleware(['auth:sanctum', 'role:3'])->group(function () {
+    // Классное руководство
+    Route::get('/getMyClassroomGroups', [TeacherController::class,'getMyClassroomGroups']);
+    // Журналы
+    Route::get('/getMyGroups', [TeacherController::class,'getMyGroups']);
+    Route::get('/getJournal/{id}', [TeacherController::class,'getJournal']);
+    Route::post('/addDate', [TeacherController::class,'addDate']);
+    Route::put('/updateDate/{id}', [TeacherController::class,'updateDate']);
+    Route::delete('/deleteDate/{id}', [TeacherController::class,'deleteDate']);
+    Route::post('/updateMark', [TeacherController::class,'updateMark']);
+    Route::post('/updateFinalMark', [TeacherController::class,'updateFinalMark']);
+    Route::post('/addSkip', [TeacherController::class,'addSkip']);
+    Route::post('/removeSkip', [TeacherController::class,'removeSkip']);
+});
 
 
 // Администратор
@@ -70,18 +85,17 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:1,2'])->group(function
 
     // Предметы у групп
     Route::get('/getAllSubjectsForGroups', [AdminController::class,'getAllSubjectsForGroups']);
-
+    Route::get('/getAllDataForSubjects', [AdminController::class,'getAllDataForSubjects']);
+    Route::get('/getSubjectForGroupById/{id}', [AdminController::class,'getSubjectForGroupById']);
     Route::post('/addSubjectForGroup', [AdminController::class,'addSubjectForGroup']);
     Route::put('/updateSubjectForGroup', [AdminController::class,'updateSubjectForGroup']);
-    Route::delete('/deleteSubjectForGroup/{id}', [AdminController::class,'deleteSbjectForGroup']);
+    Route::delete('/deleteSubjectForGroup/{id}', [AdminController::class,'deleteSubjectForGroup']);
 
     // Список предметов
     Route::get('/getAllSubjects', [AdminController::class,'getAllSubjects']);
-    Route::get('/getSpecialities', [AdminController::class,'getSpecialities']);
-    Route::get('/getTeachers', [AdminController::class,'getTeachers']);
-
+    Route::get('/getSubjectById/{id}', [AdminController::class,'getSubjectById']);
     Route::post('/addSubject', [AdminController::class,'addSubject']);
     Route::put('/updateSubject', [AdminController::class,'updateSubject']);
-    Route::delete('/deleteSubject/{id}', [AdminController::class,'deleteSbject']);
+    Route::delete('/deleteSubject/{id}', [AdminController::class,'deleteSubject']);
 
 });
